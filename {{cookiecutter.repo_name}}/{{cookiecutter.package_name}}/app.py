@@ -4,7 +4,7 @@ from exceptions import ImproperlyConfigured
 import os
 import dash_core_components as dcc
 import dash_html_components as html
-import plotly.plotly as py
+import chart_studio.plotly as py
 import plotly.graph_objs as go
 from flask import Flask
 from dash import Dash
@@ -36,16 +36,25 @@ try:
 except KeyError:
     raise ImproperlyConfigured("SECRET KEY not set in .env:")
 
-app = Dash(name=app_name, server=server)
-app.title = app_name
+external_js = [
+    "https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js",
+]
 
-external_js = []
-
-external_css = [
-    "https://stackpath.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css",
+external_stylesheets = [
+    # "https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css",
+    "https://stackpath.bootstrapcdn.com/bootswatch/3.4.1/lumen/bootstrap.min.css",
     "https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css",
     "https://codepen.io/chriddyp/pen/bWLwgP.css",
 ]
+
+app = Dash(
+    name=__name__,
+    server=server,
+    external_scripts=external_js,
+    external_stylesheets=external_stylesheets,
+)
+
+app.title = app_name
 
 
 def create_header():
@@ -54,7 +63,7 @@ def create_header():
         html.Nav(
             [
                 html.Div(
-                    [html.Div([app_name], className="navbar-brand navbar-left")],
+                    [html.Div([app.title], className="navbar-brand navbar-left")],
                     className="container",
                 )
             ],
@@ -103,7 +112,7 @@ def create_content():
                         {"label": u"Montréal", "value": "MTL"},
                         {"label": "San Francisco", "value": "SF"},
                     ],
-                    values=["MTL", "SF"],
+                    value=["MTL", "SF"],
                 ),
             ),
             create_form_group(
@@ -112,9 +121,7 @@ def create_content():
             ),
             create_form_group(
                 html.Label("Slider"),
-                dcc.Slider(
-                    min=0, max=9, marks={i: str(i) for i in range(10)}, value=5
-                ),
+                dcc.Slider(min=0, max=9, marks={i: str(i) for i in range(10)}, value=5),
             ),
         ],
         className="col-md-4",
@@ -160,9 +167,7 @@ def create_footer():
                     html.P(
                         [
                             html.Span(
-                                "{0}, version {{ cookiecutter.version }}".format(
-                                    app_name
-                                ),
+                                "Version 0.1.0",
                                 className="text-muted",
                             )
                         ],
@@ -198,10 +203,6 @@ def serve_layout():
 
 
 app.layout = serve_layout
-for js in external_js:
-    app.scripts.append_script({"external_url": js})
-for css in external_css:
-    app.css.append_css({"external_url": css})
 
 # TODO: callbacks
 
